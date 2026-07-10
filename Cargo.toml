@@ -6,6 +6,10 @@ edition = "2024"
 [dependencies]
 bevy = "0.19.0"
 
+[package.metadata.scripts]
+serve = "~/.cargo/bin/trunk serve --open"
+build-web = "~/.cargo/bin/trunk build --release"
+
 [lints.clippy]
 shadow_reuse = "deny"
 shadow_same = "deny"
