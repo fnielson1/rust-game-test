@@ -1,4 +1,5 @@
 use crate::create_solid_surface::create_solid_surface;
+use avian2d::prelude::Collider;
 use bevy::asset::Assets;
 use bevy::color::Color;
 use bevy::mesh::Mesh;
@@ -29,6 +30,7 @@ pub fn level1(
     Rectangle::new(width, FLOOR_HEIGHT),
     Color::hsl(150.0, 0.95, 0.7),
     Vec3::new(0.0, -height / 2.0 + FLOOR_HEIGHT / 2.0, 0.1),
+    Collider::rectangle(width, FLOOR_HEIGHT),
   );
   commands.spawn(floor);
 }

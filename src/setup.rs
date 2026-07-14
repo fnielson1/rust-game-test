@@ -1,5 +1,10 @@
 use crate::components::Player;
+use avian2d::prelude::{Collider, GravityScale, RigidBody};
 use bevy::prelude::*;
+
+const PLAYER_RADIUS: f32 = 50.0;
+// Multiplies the global Gravity resource for just this entity; 1.0 = unscaled, 0.0 = weightless.
+const PLAYER_GRAVITY_SCALE: f32 = 1.0;
 
 /// Startup system: spawns the camera, a row of solid 2D shapes, a row of their ring/outline
 /// counterparts, and an on-screen instructions text.
@@ -18,10 +23,14 @@ pub fn setup(
   // — the two entities behave as a single rigid body.
   commands
     .spawn((
-      Mesh2d(meshes.add(Circle::new(50.0))),
+      Mesh2d(meshes.add(Circle::new(PLAYER_RADIUS))),
       MeshMaterial2d(materials.add(Color::hsl(0., 0.95, 0.7))),
       Transform::from_xyz(0.0, 0.0, 0.0),
       Player,
+      // Dynamic: falls under gravity and collides with SolidSurface entities.
+      RigidBody::Dynamic,
+      Collider::circle(PLAYER_RADIUS),
+      GravityScale(PLAYER_GRAVITY_SCALE),
     ))
     .with_child((
       Mesh2d(meshes.add(Rectangle::new(1.0, 50.0))),

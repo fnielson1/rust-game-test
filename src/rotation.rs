@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::components::{IdleSpinner, Player};
+use crate::components::Player;
 
 const ROTATION_SPEED_DIVISOR: f32 = 1.0;
 
@@ -10,14 +10,6 @@ const ROTATION_SPEED_DIVISOR: f32 = 1.0;
 pub fn rotate(mut query: Query<&mut Transform, With<Player>>, time: Res<Time>) {
   for mut transform in &mut query {
     // Rotate at a constant angular speed, scaled by elapsed frame time for frame-rate independence.
-    transform.rotate_z(time.delta_secs() / ROTATION_SPEED_DIVISOR);
-  }
-}
-
-/// Spins the triangle only while `rotate`/`counter_rotate_children` are paused (see the opposing
-/// `input_toggle_active` defaults in `main`).
-pub fn rotate_idle_spinner(mut query: Query<&mut Transform, With<IdleSpinner>>, time: Res<Time>) {
-  for mut transform in &mut query {
     transform.rotate_z(time.delta_secs() / ROTATION_SPEED_DIVISOR);
   }
 }

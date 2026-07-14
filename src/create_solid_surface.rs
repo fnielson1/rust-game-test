@@ -1,4 +1,5 @@
 use crate::components::SolidSurface;
+use avian2d::prelude::{Collider, RigidBody};
 use bevy::asset::Assets;
 use bevy::color::Color;
 use bevy::mesh::{Mesh, Mesh2d};
@@ -12,11 +13,15 @@ pub fn create_solid_surface(
   mesh: impl Into<Mesh>,
   color: Color,
   transform: Vec3,
+  // Collision shape matching `mesh`, so the surface can be hit by dynamic rigid bodies.
+  collider: Collider,
 ) -> (
   Mesh2d,
   MeshMaterial2d<ColorMaterial>,
   Transform,
   SolidSurface,
+  RigidBody,
+  Collider,
 ) {
   (
     Mesh2d(meshes.add(mesh)),
@@ -25,5 +30,8 @@ pub fn create_solid_surface(
     // (screen bottom) plus half its own thickness (so its bottom edge lands on the window edge).
     Transform::from_xyz(transform.x, transform.y, transform.z),
     SolidSurface,
+    // Static: never moves, but dynamic bodies collide with and rest on it.
+    RigidBody::Static,
+    collider,
   )
 }
