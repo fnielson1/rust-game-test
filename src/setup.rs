@@ -1,6 +1,9 @@
 use crate::components::Player;
 use avian2d::prelude::{Collider, GravityScale, RigidBody};
-use bevy::prelude::*;
+use bevy::prelude::{
+  Assets, Camera2d, Circle, Color, ColorMaterial, Commands, Mesh, Mesh2d, MeshMaterial2d,
+  Rectangle, ResMut, Transform,
+};
 
 const PLAYER_RADIUS: f32 = 50.0;
 // Multiplies the global Gravity resource for just this entity; 1.0 = unscaled, 0.0 = weightless.
@@ -33,8 +36,8 @@ pub fn setup(
       GravityScale(PLAYER_GRAVITY_SCALE),
     ))
     .with_child((
-      Mesh2d(meshes.add(Rectangle::new(1.0, 50.0))),
-      MeshMaterial2d(materials.add(Color::hsl(220., 0.95, 0.7))),
+      Mesh2d(meshes.add(Rectangle::new(4.0, 50.0))),
+      MeshMaterial2d(materials.add(Color::hsl(120., 0.95, 0.7))),
       Transform::from_xyz(0.0, 0.0, 0.1),
     ));
 }

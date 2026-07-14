@@ -13,7 +13,7 @@ mod rotation;
 mod setup;
 
 use levels::level1::level1;
-use rotation::{counter_rotate_children, rotate};
+use rotation::{rotate, stop_rotation};
 use setup::setup;
 
 fn main() {
@@ -30,11 +30,18 @@ fn main() {
     // Run `setup` once at startup to spawn the camera, shapes, and UI text.
     .add_systems(Startup, setup)
     .add_systems(Startup, level1);
+
   // Run `rotate` every frame, but only while rotation hasn't been toggled off by pressing R
   // (input_toggle_active(false, ...) starts in the "active" state and flips each press of R).
   app.add_systems(
     Update,
-    (rotate, counter_rotate_children).run_if(input_toggle_active(false, KeyCode::KeyR)),
+    (rotate).run_if(input_toggle_active(false, KeyCode::KeyR)),
+  );
+  // Opposite toggle state from above: zeroes the Player's angular velocity while rotation is
+  // paused, since `rotate` (the only other writer of that velocity) doesn't run in this state.
+  app.add_systems(
+    Update,
+    stop_rotation.run_if(input_toggle_active(true, KeyCode::KeyR)),
   );
   // Start the Bevy event loop; this blocks until the app exits.
   app.run();
