@@ -1,11 +1,13 @@
 use crate::components::SolidSurface;
-use avian2d::prelude::{Collider, RigidBody};
+use avian2d::prelude::{CoefficientCombine, Collider, Friction, RigidBody};
 use bevy::asset::Assets;
 use bevy::color::Color;
 use bevy::mesh::{Mesh, Mesh2d};
 use bevy::prelude::{ColorMaterial, MeshMaterial2d, ResMut, Transform, Vec3};
 
-pub fn create_solid_surface(
+const SOLID_FRICTION: f32 = 10.0;
+
+pub fn create_static_solid_surface(
   // Mesh storage; `meshes.add(...)` uploads geometry and returns a handle to it.
   mut meshes: ResMut<Assets<Mesh>>,
   // Material storage; `materials.add(color)` creates a solid-color material and returns a handle.
@@ -21,6 +23,7 @@ pub fn create_solid_surface(
   Transform,
   SolidSurface,
   RigidBody,
+  Friction,
   Collider,
 ) {
   (
@@ -32,6 +35,7 @@ pub fn create_solid_surface(
     SolidSurface,
     // Static: never moves, but dynamic bodies collide with and rest on it.
     RigidBody::Static,
+    Friction::new(SOLID_FRICTION).with_combine_rule(CoefficientCombine::Average),
     collider,
   )
 }

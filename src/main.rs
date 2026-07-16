@@ -1,19 +1,19 @@
 // Core Bevy imports used on every target: the input-condition helper and the prelude (App, Commands, etc.).
-use avian2d::prelude::{Gravity, PhysicsPlugins};
-use bevy::{input::common_conditions::input_toggle_active, prelude::*};
+use avian2d::prelude::{Gravity, PhysicsPlugins, SubstepCount};
+use bevy::prelude::*;
 
 // Avian's default Gravity (-9.81) is tuned for meter-scale units; our world uses pixel-scale
 // coordinates, so it needs to be much larger to produce a visible fall speed.
 const GRAVITY: f32 = 400.0;
 
 mod components;
-mod create_solid_surface;
+mod create_static_solid_surface;
 mod levels;
-mod rotation;
+mod player;
 mod setup;
 
 use levels::level1::level1;
-use rotation::{rotate, stop_rotation};
+use player::player_input::player_input;
 use setup::setup;
 
 fn main() {
@@ -27,22 +27,14 @@ fn main() {
       PhysicsPlugins::default(),
     ))
     .insert_resource(Gravity(Vec2::NEG_Y * GRAVITY))
+    // More substeps = the friction solver resolves the spin-to-roll grip more gradually
+    // instead of correcting the whole slip velocity in one step (avian2d default is 6).
+    .insert_resource(SubstepCount(26))
     // Run `setup` once at startup to spawn the camera, shapes, and UI text.
     .add_systems(Startup, setup)
     .add_systems(Startup, level1);
 
-  // Run `rotate` every frame, but only while rotation hasn't been toggled off by pressing R
-  // (input_toggle_active(false, ...) starts in the "active" state and flips each press of R).
-  app.add_systems(
-    Update,
-    (rotate).run_if(input_toggle_active(false, KeyCode::KeyR)),
-  );
-  // Opposite toggle state from above: zeroes the Player's angular velocity while rotation is
-  // paused, since `rotate` (the only other writer of that velocity) doesn't run in this state.
-  app.add_systems(
-    Update,
-    stop_rotation.run_if(input_toggle_active(true, KeyCode::KeyR)),
-  );
+  app.add_systems(Update, player_input);
   // Start the Bevy event loop; this blocks until the app exits.
   app.run();
 }

@@ -1,4 +1,4 @@
-use crate::create_solid_surface::create_solid_surface;
+use crate::create_static_solid_surface::create_static_solid_surface;
 use avian2d::prelude::Collider;
 use bevy::asset::Assets;
 use bevy::color::Color;
@@ -24,7 +24,7 @@ pub fn level1(
   let width = window.width();
   let height = window.height();
 
-  let floor = create_solid_surface(
+  let floor = create_static_solid_surface(
     meshes,
     materials,
     Rectangle::new(width, FLOOR_HEIGHT),
