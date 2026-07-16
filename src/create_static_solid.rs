@@ -3,15 +3,15 @@ use avian2d::prelude::{CoefficientCombine, Collider, Friction, RigidBody};
 use bevy::asset::Assets;
 use bevy::color::Color;
 use bevy::mesh::{Mesh, Mesh2d};
-use bevy::prelude::{ColorMaterial, MeshMaterial2d, ResMut, Transform, Vec3};
+use bevy::prelude::{ColorMaterial, MeshMaterial2d, Transform, Vec3};
 
 const SOLID_FRICTION: f32 = 10.0;
 
-pub fn create_static_solid_surface(
+pub fn create_static_solid(
   // Mesh storage; `meshes.add(...)` uploads geometry and returns a handle to it.
-  mut meshes: ResMut<Assets<Mesh>>,
+  meshes: &mut Assets<Mesh>,
   // Material storage; `materials.add(color)` creates a solid-color material and returns a handle.
-  mut materials: ResMut<Assets<ColorMaterial>>,
+  materials: &mut Assets<ColorMaterial>,
   mesh: impl Into<Mesh>,
   color: Color,
   transform: Vec3,

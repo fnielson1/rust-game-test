@@ -8,7 +8,7 @@ const GRAVITY: f32 = 400.0;
 
 mod camera_follow;
 mod components;
-mod create_static_solid_surface;
+mod create_static_solid;
 mod levels;
 mod player;
 mod setup;

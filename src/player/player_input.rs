@@ -16,7 +16,7 @@ pub fn player_input(
   mut query: Query<(&mut LinearVelocity, &mut AngularVelocity), With<Player>>,
 ) {
   // Spacebar
-  if keys.just_pressed(KeyCode::Space) {
+  if keys.just_pressed(KeyCode::Space) || keys.just_pressed(KeyCode::ArrowUp) {
     for (mut velocity, _) in &mut query {
       velocity.0 = Vec2::new(velocity.0.x, JUMP_SPEED);
     }
