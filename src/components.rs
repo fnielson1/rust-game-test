@@ -5,3 +5,6 @@ pub struct SolidSurface;
 
 #[derive(Component)]
 pub struct Player;
+
+#[derive(Component)]
+pub struct MainCamera;

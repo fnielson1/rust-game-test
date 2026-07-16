@@ -6,12 +6,14 @@ use bevy::prelude::*;
 // coordinates, so it needs to be much larger to produce a visible fall speed.
 const GRAVITY: f32 = 400.0;
 
+mod camera_follow;
 mod components;
 mod create_static_solid_surface;
 mod levels;
 mod player;
 mod setup;
 
+use camera_follow::camera_follow;
 use levels::level1::level1;
 use player::player_input::player_input;
 use setup::setup;
@@ -34,7 +36,7 @@ fn main() {
     .add_systems(Startup, setup)
     .add_systems(Startup, level1);
 
-  app.add_systems(Update, player_input);
+  app.add_systems(Update, (player_input, camera_follow).chain());
   // Start the Bevy event loop; this blocks until the app exits.
   app.run();
 }

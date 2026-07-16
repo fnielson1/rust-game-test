@@ -1,9 +1,10 @@
 use crate::components::Player;
 use avian2d::prelude::{CoefficientCombine, Collider, Friction, GravityScale, RigidBody};
 use bevy::prelude::{
-  Assets, Circle, Color, ColorMaterial, Commands, Mesh, Mesh2d, MeshMaterial2d, Rectangle, ResMut,
-  Transform,
+  Assets, Circle, Color, ColorMaterial, Commands, Mesh, Mesh2d, MeshMaterial2d, Query, Rectangle,
+  ResMut, Transform, With,
 };
+use bevy::window::{PrimaryWindow, Window};
 
 const PLAYER_RADIUS: f32 = 50.0;
 // Multiplies the global Gravity resource for just this entity; 1.0 = unscaled, 0.0 = weightless.
@@ -16,7 +17,15 @@ pub fn setup_player(
   mut meshes: ResMut<Assets<Mesh>>,
   // Material storage; `materials.add(color)` creates a solid-color material and returns a handle.
   mut materials: ResMut<Assets<ColorMaterial>>,
+  windows: Query<&Window, With<PrimaryWindow>>,
 ) {
+  // 2D world units map 1:1 to logical pixels, so the primary window's logical height
+  // doubles as the visible world bounds (see level1.rs).
+  let window = windows
+    .single()
+    .expect("primary window should exist by Startup");
+  let spawn_y = -window.height() / 2.0 + PLAYER_RADIUS * 2.0;
+
   // Spawn the circle, then attach the rectangle to it as a child. Child transforms are
   // relative to the parent, so rotating/moving the circle carries the rectangle with it
   // — the two entities behave as a single rigid body.
@@ -24,7 +33,7 @@ pub fn setup_player(
     .spawn((
       Mesh2d(meshes.add(Circle::new(PLAYER_RADIUS))),
       MeshMaterial2d(materials.add(Color::hsl(0., 0.95, 0.7))),
-      Transform::from_xyz(0.0, 0.0, 0.0),
+      Transform::from_xyz(0.0, spawn_y, 0.0),
       Player,
       // Dynamic: falls under gravity and collides with SolidSurface entities.
       RigidBody::Dynamic,
