@@ -10,7 +10,7 @@ mod app_state;
 mod camera_follow;
 mod components;
 mod create_static_solid;
-mod input;
+mod input_config;
 mod levels;
 mod menu;
 mod player;
@@ -18,7 +18,7 @@ mod setup;
 
 use app_state::{AppState, toggle_menu};
 use camera_follow::camera_follow;
-use input::{KeyBindings, RebindError, RebindRequest, rebind_capture};
+use input_config::{KeyBindings, RebindError, RebindRequest, rebind_capture};
 use levels::level1::level1;
 use menu::{
   handle_cog_click, handle_row_clicks, spawn_cog_button, spawn_menu, update_binding_rows,

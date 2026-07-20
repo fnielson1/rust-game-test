@@ -1,5 +1,5 @@
 use crate::app_state::{AppState, close_menu, open_menu};
-use crate::input::{InputAction, KeyBindings, RebindError, RebindRequest, key_display_name};
+use crate::input_config::{InputAction, KeyBindings, RebindError, RebindRequest, key_display_name};
 use avian2d::prelude::Physics;
 use bevy::math::Rot2;
 use bevy::prelude::{

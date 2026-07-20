@@ -1,4 +1,4 @@
-use crate::input::RebindRequest;
+use crate::input_config::RebindRequest;
 use avian2d::prelude::{Physics, PhysicsTime};
 use bevy::prelude::{ButtonInput, KeyCode, NextState, Res, ResMut, State, States, Time};
 

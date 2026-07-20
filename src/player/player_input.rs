@@ -1,5 +1,5 @@
 use crate::components::{CoyoteTimer, Player};
-use crate::input::{InputAction, KeyBindings};
+use crate::input_config::{InputAction, KeyBindings};
 use avian2d::prelude::{AngularVelocity, LinearVelocity};
 use bevy::prelude::{ButtonInput, KeyCode, Query, Res, Time, Vec2, With};
 
