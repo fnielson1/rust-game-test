@@ -1,4 +1,4 @@
-use crate::components::Player;
+use crate::components::{CoyoteTimer, Player};
 use avian2d::prelude::{
   CoefficientCombine, Collider, Friction, GravityScale, Restitution, RigidBody, ShapeCaster,
 };
@@ -63,6 +63,9 @@ pub fn setup_player(
         Dir2::NEG_Y,
       )
       .with_max_distance(GROUND_CAST_DISTANCE),
+      // Starts "never grounded" so the coyote-time jump window can't be used before the
+      // player has actually touched down once; `update_grounded` resets this on contact.
+      CoyoteTimer(f32::MAX),
     ))
     .with_child((
       Mesh2d(meshes.add(Rectangle::new(4.0, 50.0))),
