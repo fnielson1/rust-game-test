@@ -1,4 +1,5 @@
 use crate::components::Player;
+use crate::input::{InputAction, KeyBindings};
 use avian2d::prelude::{AngularVelocity, LinearVelocity};
 use bevy::prelude::{ButtonInput, KeyCode, Query, Res, Time, Vec2, With};
 
@@ -12,18 +13,22 @@ const JUMP_SPEED: f32 = 500.0;
 
 pub fn player_input(
   keys: Res<ButtonInput<KeyCode>>,
+  bindings: Res<KeyBindings>,
   time: Res<Time>,
   mut query: Query<(&mut LinearVelocity, &mut AngularVelocity), With<Player>>,
 ) {
-  // Spacebar
-  if keys.just_pressed(KeyCode::Space) || keys.just_pressed(KeyCode::ArrowUp) {
+  let jump_key = bindings.bound_key(InputAction::Jump);
+  let rotate_left_key = bindings.bound_key(InputAction::RotateLeft);
+  let rotate_right_key = bindings.bound_key(InputAction::RotateRight);
+
+  if keys.just_pressed(jump_key) {
     for (mut velocity, _) in &mut query {
       velocity.0 = Vec2::new(velocity.0.x, JUMP_SPEED);
     }
   }
   // Left/Right
-  if keys.pressed(KeyCode::ArrowRight) || keys.pressed(KeyCode::ArrowLeft) {
-    let input_sign = if keys.pressed(KeyCode::ArrowLeft) {
+  if keys.pressed(rotate_left_key) || keys.pressed(rotate_right_key) {
+    let input_sign = if keys.pressed(rotate_left_key) {
       1.0
     } else {
       -1.0
