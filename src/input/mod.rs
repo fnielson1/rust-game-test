@@ -30,9 +30,9 @@ pub struct KeyBindings(HashMap<InputAction, KeyCode>);
 impl Default for KeyBindings {
   fn default() -> Self {
     let mut bindings = HashMap::new();
-    bindings.insert(InputAction::Jump, KeyCode::Space);
-    bindings.insert(InputAction::RotateLeft, KeyCode::ArrowLeft);
-    bindings.insert(InputAction::RotateRight, KeyCode::ArrowRight);
+    bindings.insert(InputAction::Jump, KeyCode::KeyW);
+    bindings.insert(InputAction::RotateLeft, KeyCode::KeyA);
+    bindings.insert(InputAction::RotateRight, KeyCode::KeyD);
     Self(bindings)
   }
 }

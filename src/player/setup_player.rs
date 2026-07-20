@@ -1,5 +1,7 @@
 use crate::components::Player;
-use avian2d::prelude::{CoefficientCombine, Collider, Friction, GravityScale, RigidBody};
+use avian2d::prelude::{
+  CoefficientCombine, Collider, Friction, GravityScale, Restitution, RigidBody,
+};
 use bevy::prelude::{
   Assets, Circle, Color, ColorMaterial, Commands, Mesh, Mesh2d, MeshMaterial2d, Query, Rectangle,
   ResMut, Transform, With,
@@ -10,6 +12,9 @@ const PLAYER_RADIUS: f32 = 50.0;
 // Multiplies the global Gravity resource for just this entity; 1.0 = unscaled, 0.0 = weightless.
 const PLAYER_GRAVITY_SCALE: f32 = 1.0;
 const PLAYER_FRICTION: f32 = 0.5;
+// Without any Restitution, Avian defaults to 0.0 (perfectly inelastic), so the ball
+// absorbs all velocity on contact and sticks to walls/floor instead of bouncing off.
+const PLAYER_RESTITUTION: f32 = 0.2;
 
 pub fn setup_player(
   mut commands: Commands,
@@ -40,6 +45,9 @@ pub fn setup_player(
       Collider::circle(PLAYER_RADIUS),
       GravityScale(PLAYER_GRAVITY_SCALE),
       Friction::new(PLAYER_FRICTION).with_combine_rule(CoefficientCombine::Average),
+      // Max combine rule so the ball still bounces even though the walls/floor don't
+      // define their own Restitution (which would otherwise default to 0.0).
+      Restitution::new(PLAYER_RESTITUTION).with_combine_rule(CoefficientCombine::Max),
     ))
     .with_child((
       Mesh2d(meshes.add(Rectangle::new(4.0, 50.0))),
