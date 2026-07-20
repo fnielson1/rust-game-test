@@ -25,16 +25,6 @@ pub fn player_input(
   let rotate_left_key = bindings.bound_key(InputAction::RotateLeft);
   let rotate_right_key = bindings.bound_key(InputAction::RotateRight);
 
-  if keys.pressed(jump_key) {
-    for (mut velocity, _, mut coyote_timer) in &mut query {
-      if coyote_timer.0 <= COYOTE_TIME {
-        velocity.0 = Vec2::new(velocity.0.x, JUMP_SPEED);
-        // Push the timer past the window so this jump can't be re-triggered on the next
-        // frame(s) while the key is still held and the player hasn't touched down again.
-        coyote_timer.0 = f32::MAX;
-      }
-    }
-  }
   // Left/Right
   if keys.pressed(rotate_left_key) || keys.pressed(rotate_right_key) {
     let input_sign = if keys.pressed(rotate_left_key) {
@@ -52,6 +42,17 @@ pub fn player_input(
       let delta = input_sign * ROTATION_ACCEL * multiplier * time.delta_secs();
       angular_velocity.0 =
         (angular_velocity.0 + delta).clamp(-MAX_ROTATION_SPEED, MAX_ROTATION_SPEED);
+    }
+  }
+  // Jump
+  if keys.pressed(jump_key) {
+    for (mut velocity, _, mut coyote_timer) in &mut query {
+      if coyote_timer.0 <= COYOTE_TIME {
+        velocity.0 = Vec2::new(velocity.0.x, JUMP_SPEED);
+        // Push the timer past the window so this jump can't be re-triggered on the next
+        // frame(s) while the key is still held and the player hasn't touched down again.
+        coyote_timer.0 = f32::MAX;
+      }
     }
   }
 }
