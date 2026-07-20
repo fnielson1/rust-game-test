@@ -1,4 +1,4 @@
-use crate::components::MainCamera;
+use crate::components::PlayerCamera;
 use crate::player::setup_player::setup_player;
 use crate::world_bounds::{WORLD_HEIGHT, WORLD_WIDTH};
 use bevy::camera::ScalingMode;
@@ -21,7 +21,7 @@ pub fn setup(
   // just reveal more or less of the world.
   commands.spawn((
     Camera2d,
-    MainCamera,
+    PlayerCamera,
     Projection::Orthographic(OrthographicProjection {
       scaling_mode: ScalingMode::AutoMin {
         min_width: WORLD_WIDTH,

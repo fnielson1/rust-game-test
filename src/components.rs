@@ -7,7 +7,7 @@ pub struct SolidSurface;
 pub struct Player;
 
 #[derive(Component)]
-pub struct MainCamera;
+pub struct PlayerCamera;
 
 /// Marker inserted on the `Player` while a downward shapecast reports ground contact,
 /// and removed otherwise. `SparseSet` storage since it's toggled every frame rather than

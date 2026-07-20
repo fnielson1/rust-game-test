@@ -1,9 +1,29 @@
-use crate::components::{Grounded, MainCamera, Player, SolidSurface};
+use crate::components::{Grounded, Player, PlayerCamera, SolidSurface};
 use avian2d::prelude::{ColliderAabb, LinearVelocity};
 use bevy::prelude::{Has, Local, Projection, Query, Res, Time, Transform, With, Without};
 
-type CameraQuery<'w, 's> =
-  Query<'w, 's, (&'static mut Transform, &'static Projection), (With<MainCamera>, Without<Player>)>;
+/**
+type CameraQuery<'w, 's> = ...
+  A generic type alias with two lifetime parameters, 'w and 's. It doesn't hold
+  real data — it's just a name that Rust substitutes for the longer type, and it
+  stays generic so each call site (each frame the system runs) can plug in its
+  own concrete lifetimes.
+
+  Query<'w, 's, D, F>
+  Bevy's Query struct is defined as:
+  pub struct Query<'world, 'state, D: QueryData, F: QueryFilter = ()> {
+      world: UnsafeWorldCell<'world>,
+      state: &'state QueryState<D, F>,
+      ...
+  }
+
+*/
+type CameraQuery<'w, 's> = Query<
+  'w,
+  's,
+  (&'static mut Transform, &'static Projection),
+  (With<PlayerCamera>, Without<Player>),
+>;
 
 // Higher = camera catches up to the player faster (less lag, less smoothing).
 const CAMERA_SMOOTHING: f32 = 6.0;
