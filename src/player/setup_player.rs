@@ -51,13 +51,14 @@ pub fn setup_player(
       // Max combine rule so the ball still bounces even though the walls/floor don't
       // define their own Restitution (which would otherwise default to 0.0).
       Restitution::new(PLAYER_RESTITUTION).with_combine_rule(CoefficientCombine::Max),
-      // Continuously casts a slightly-shrunk copy of the player's own shape straight down;
+      // Continuously casts a copy of the player's own shape straight down;
       // `update_grounded` reads the resulting `ShapeHits` each frame to toggle `Grounded`.
       // This is the standard Avian way to answer "is this body touching the ground" —
       // more reliable than inferring it from velocity or one-shot collision events, since
       // it works whether the ball is momentarily still, sliding, or spinning in place.
       ShapeCaster::new(
-        Collider::circle(PLAYER_RADIUS * 0.99),
+        // Make the "detector" slightly bigger to avoid issues with small bounces
+        Collider::circle(PLAYER_RADIUS * 1.1),
         Vec2::ZERO,
         0.0,
         Dir2::NEG_Y,
