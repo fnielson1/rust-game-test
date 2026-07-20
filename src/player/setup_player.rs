@@ -1,10 +1,10 @@
 use crate::components::Player;
 use avian2d::prelude::{
-  CoefficientCombine, Collider, Friction, GravityScale, Restitution, RigidBody,
+  CoefficientCombine, Collider, Friction, GravityScale, Restitution, RigidBody, ShapeCaster,
 };
 use bevy::prelude::{
-  Assets, Circle, Color, ColorMaterial, Commands, Mesh, Mesh2d, MeshMaterial2d, Query, Rectangle,
-  ResMut, Transform, With,
+  Assets, Circle, Color, ColorMaterial, Commands, Dir2, Mesh, Mesh2d, MeshMaterial2d, Query,
+  Rectangle, ResMut, Transform, Vec2, With,
 };
 use bevy::window::{PrimaryWindow, Window};
 
@@ -15,6 +15,9 @@ const PLAYER_FRICTION: f32 = 0.5;
 // Without any Restitution, Avian defaults to 0.0 (perfectly inelastic), so the ball
 // absorbs all velocity on contact and sticks to walls/floor instead of bouncing off.
 const PLAYER_RESTITUTION: f32 = 0.2;
+// How far below the player to look for ground. Small enough that the caster only reports
+// contact when the ball is actually resting on a surface, not merely nearby.
+const GROUND_CAST_DISTANCE: f32 = 4.0;
 
 pub fn setup_player(
   mut commands: Commands,
@@ -48,6 +51,18 @@ pub fn setup_player(
       // Max combine rule so the ball still bounces even though the walls/floor don't
       // define their own Restitution (which would otherwise default to 0.0).
       Restitution::new(PLAYER_RESTITUTION).with_combine_rule(CoefficientCombine::Max),
+      // Continuously casts a slightly-shrunk copy of the player's own shape straight down;
+      // `update_grounded` reads the resulting `ShapeHits` each frame to toggle `Grounded`.
+      // This is the standard Avian way to answer "is this body touching the ground" —
+      // more reliable than inferring it from velocity or one-shot collision events, since
+      // it works whether the ball is momentarily still, sliding, or spinning in place.
+      ShapeCaster::new(
+        Collider::circle(PLAYER_RADIUS * 0.99),
+        Vec2::ZERO,
+        0.0,
+        Dir2::NEG_Y,
+      )
+      .with_max_distance(GROUND_CAST_DISTANCE),
     ))
     .with_child((
       Mesh2d(meshes.add(Rectangle::new(4.0, 50.0))),

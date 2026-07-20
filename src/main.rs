@@ -24,6 +24,7 @@ use menu::{
   handle_cog_click, handle_row_clicks, spawn_cog_button, spawn_menu, update_binding_rows,
   update_error_label,
 };
+use player::grounded::update_grounded;
 use player::player_input::player_input;
 use setup::setup;
 
@@ -54,6 +55,7 @@ fn main() {
   app.add_systems(
     Update,
     (
+      update_grounded,
       player_input.run_if(in_state(AppState::InGame)),
       camera_follow,
     )

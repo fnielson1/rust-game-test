@@ -1,7 +1,7 @@
-use crate::components::Player;
+use crate::components::{Grounded, Player};
 use crate::input::{InputAction, KeyBindings};
 use avian2d::prelude::{AngularVelocity, LinearVelocity};
-use bevy::prelude::{ButtonInput, KeyCode, Query, Res, Time, Vec2, With};
+use bevy::prelude::{ButtonInput, Has, KeyCode, Query, Res, Time, Vec2, With};
 
 // Radians/sec^2 the Player's spin accelerates by while the key is held.
 const ROTATION_ACCEL: f32 = 40.0;
@@ -15,15 +15,17 @@ pub fn player_input(
   keys: Res<ButtonInput<KeyCode>>,
   bindings: Res<KeyBindings>,
   time: Res<Time>,
-  mut query: Query<(&mut LinearVelocity, &mut AngularVelocity), With<Player>>,
+  mut query: Query<(&mut LinearVelocity, &mut AngularVelocity, Has<Grounded>), With<Player>>,
 ) {
   let jump_key = bindings.bound_key(InputAction::Jump);
   let rotate_left_key = bindings.bound_key(InputAction::RotateLeft);
   let rotate_right_key = bindings.bound_key(InputAction::RotateRight);
 
-  if keys.just_pressed(jump_key) {
-    for (mut velocity, _) in &mut query {
-      velocity.0 = Vec2::new(velocity.0.x, JUMP_SPEED);
+  if keys.pressed(jump_key) {
+    for (mut velocity, _, is_grounded) in &mut query {
+      if is_grounded {
+        velocity.0 = Vec2::new(velocity.0.x, JUMP_SPEED);
+      }
     }
   }
   // Left/Right
@@ -33,7 +35,7 @@ pub fn player_input(
     } else {
       -1.0
     };
-    for (_, mut angular_velocity) in &mut query {
+    for (_, mut angular_velocity, _) in &mut query {
       // Reversing spin gets a stronger kick than accelerating further the same way.
       let multiplier = if angular_velocity.0 * input_sign < 0.0 {
         ROTATION_REVERSE_MULTIPLIER
