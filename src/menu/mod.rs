@@ -1,10 +1,10 @@
-use crate::app_state::{open_menu, AppState};
+use crate::app_state::{close_menu, open_menu, AppState};
 use crate::input::{key_display_name, InputAction, KeyBindings, RebindError, RebindRequest};
 use avian2d::prelude::Physics;
 use bevy::prelude::{
   default, AlignItems, BackgroundColor, BorderRadius, Changed, Color, Commands, Component,
   FlexDirection, Interaction, JustifyContent, NextState, Node, PositionType, Query, Res, ResMut,
-  Text, TextColor, Time, UiRect, UiTransform, Val, With,
+  State, Text, TextColor, Time, UiRect, UiTransform, Val, With,
 };
 use bevy::math::Rot2;
 use bevy::state::state_scoped::DespawnOnExit;
@@ -83,15 +83,27 @@ pub fn spawn_cog_button(mut commands: Commands) {
     });
 }
 
-/// Opens the settings menu when the cog button is clicked while playing.
+/// Toggles the settings menu open/closed when the cog button is clicked. While a rebind is
+/// in progress, the click is ignored so it doesn't abandon the pending capture mid-flight.
 pub fn handle_cog_click(
   cog: Query<&Interaction, (Changed<Interaction>, With<CogButton>)>,
+  state: Res<State<AppState>>,
   mut next_state: ResMut<NextState<AppState>>,
   mut physics_time: ResMut<Time<Physics>>,
+  rebind_request: Res<RebindRequest>,
 ) {
   for interaction in &cog {
-    if *interaction == Interaction::Pressed {
-      open_menu(&mut next_state, &mut physics_time);
+    if *interaction != Interaction::Pressed {
+      continue;
+    }
+    match state.get() {
+      AppState::InGame => open_menu(&mut next_state, &mut physics_time),
+      AppState::Menu => {
+        if rebind_request.0.is_some() {
+          continue;
+        }
+        close_menu(&mut next_state, &mut physics_time);
+      }
     }
   }
 }

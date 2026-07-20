@@ -59,8 +59,7 @@ fn main() {
     )
       .chain(),
   );
-  app.add_systems(Update, toggle_menu);
-  app.add_systems(Update, handle_cog_click.run_if(in_state(AppState::InGame)));
+  app.add_systems(Update, (toggle_menu, handle_cog_click));
   app.add_systems(
     Update,
     (
