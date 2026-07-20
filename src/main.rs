@@ -15,6 +15,7 @@ mod levels;
 mod menu;
 mod player;
 mod setup;
+mod world_bounds;
 
 use app_state::{AppState, toggle_menu};
 use camera_follow::camera_follow;

@@ -1,7 +1,9 @@
 use crate::components::{Grounded, MainCamera, Player, SolidSurface};
 use avian2d::prelude::{ColliderAabb, LinearVelocity};
-use bevy::prelude::{Has, Local, Query, Res, Time, Transform, With, Without};
-use bevy::window::{PrimaryWindow, Window};
+use bevy::prelude::{Has, Local, Projection, Query, Res, Time, Transform, With, Without};
+
+type CameraQuery<'w, 's> =
+  Query<'w, 's, (&'static mut Transform, &'static Projection), (With<MainCamera>, Without<Player>)>;
 
 // Higher = camera catches up to the player faster (less lag, less smoothing).
 const CAMERA_SMOOTHING: f32 = 6.0;
@@ -27,19 +29,22 @@ pub fn camera_follow(
   time: Res<Time>,
   mut screen_height_fraction: Local<Option<f32>>,
   player_query: Query<(&Transform, &LinearVelocity, Has<Grounded>), With<Player>>,
-  mut camera_query: Query<&mut Transform, (With<MainCamera>, Without<Player>)>,
+  mut camera_query: CameraQuery,
   solid_query: Query<&ColliderAabb, With<SolidSurface>>,
-  window_query: Query<&Window, With<PrimaryWindow>>,
 ) {
   let Ok((player_transform, velocity, grounded)) = player_query.single() else {
     return;
   };
-  let Ok(mut camera_transform) = camera_query.single_mut() else {
+  let Ok((mut camera_transform, projection)) = camera_query.single_mut() else {
     return;
   };
-  let Ok(window) = window_query.single() else {
+  // The camera scales its AutoMin reference area to fit the window (see `setup.rs`), so the
+  // actual visible world size is read from the projection's area, not the window's pixel size.
+  let Projection::Orthographic(ortho) = projection else {
     return;
   };
+  let view_width = ortho.area.width();
+  let view_height = ortho.area.height();
   // Falling players are shown higher on screen (more room to see what's below them);
   // grounded players sit lower (more room to see what's ahead/above). While grounded,
   // vertical velocity is just contact-resolution noise (e.g. rolling over bumps), so
@@ -60,7 +65,7 @@ pub fn camera_follow(
   // Camera translation is the screen center, so to pin the player at
   // `current_fraction` up from the bottom, shift the camera above the
   // player by however far that fraction sits from the vertical midpoint (0.5).
-  let vertical_offset = (0.5 - *current_fraction) * window.height();
+  let vertical_offset = (0.5 - *current_fraction) * view_height;
   let mut target = player_transform.translation;
   target.y += vertical_offset;
   target.z = camera_transform.translation.z;
@@ -70,16 +75,15 @@ pub fn camera_follow(
   // surface currently spanning the screen's width, no matter how fast the player falls.
   // Applied to the target (not the final translation) so the lerp below eases the
   // camera into and out of the clamp instead of snapping onto it.
-  let screen_min_x = target.x - window.width() / 2.0;
-  let screen_max_x = target.x + window.width() / 2.0;
+  let screen_min_x = target.x - view_width / 2.0;
+  let screen_max_x = target.x + view_width / 2.0;
   let lowest_on_screen_solid_bottom = solid_query
     .iter()
     .filter(|aabb| aabb.max.x >= screen_min_x && aabb.min.x <= screen_max_x)
     .map(|aabb| aabb.min.y)
     .fold(f32::INFINITY, f32::min);
   if lowest_on_screen_solid_bottom.is_finite() {
-    let min_camera_y =
-      lowest_on_screen_solid_bottom - MAX_HEIGHT_BELOW_GROUND + window.height() / 2.0;
+    let min_camera_y = lowest_on_screen_solid_bottom - MAX_HEIGHT_BELOW_GROUND + view_height / 2.0;
     target.y = target.y.max(min_camera_y);
   }
 

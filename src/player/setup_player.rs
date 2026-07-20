@@ -1,12 +1,12 @@
 use crate::components::{CoyoteTimer, Player};
+use crate::world_bounds::WORLD_HEIGHT;
 use avian2d::prelude::{
   CoefficientCombine, Collider, Friction, GravityScale, Restitution, RigidBody, ShapeCaster,
 };
 use bevy::prelude::{
-  Assets, Circle, Color, ColorMaterial, Commands, Dir2, Mesh, Mesh2d, MeshMaterial2d, Query,
-  Rectangle, ResMut, Transform, Vec2, With,
+  Assets, Circle, Color, ColorMaterial, Commands, Dir2, Mesh, Mesh2d, MeshMaterial2d, Rectangle,
+  ResMut, Transform, Vec2,
 };
-use bevy::window::{PrimaryWindow, Window};
 
 const PLAYER_RADIUS: f32 = 50.0;
 // Multiplies the global Gravity resource for just this entity; 1.0 = unscaled, 0.0 = weightless.
@@ -25,14 +25,8 @@ pub fn setup_player(
   mut meshes: ResMut<Assets<Mesh>>,
   // Material storage; `materials.add(color)` creates a solid-color material and returns a handle.
   mut materials: ResMut<Assets<ColorMaterial>>,
-  windows: Query<&Window, With<PrimaryWindow>>,
 ) {
-  // 2D world units map 1:1 to logical pixels, so the primary window's logical height
-  // doubles as the visible world bounds (see level1.rs).
-  let window = windows
-    .single()
-    .expect("primary window should exist by Startup");
-  let spawn_y = -window.height() / 2.0 + PLAYER_RADIUS * 2.0;
+  let spawn_y = -WORLD_HEIGHT / 2.0 + PLAYER_RADIUS * 2.0;
 
   // Spawn the circle, then attach the rectangle to it as a child. Child transforms are
   // relative to the parent, so rotating/moving the circle carries the rectangle with it

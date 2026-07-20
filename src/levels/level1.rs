@@ -1,10 +1,10 @@
 use crate::create_static_solid::create_static_solid;
+use crate::world_bounds::{WORLD_HEIGHT, WORLD_WIDTH};
 use avian2d::prelude::Collider;
 use bevy::asset::Assets;
 use bevy::color::Color;
 use bevy::mesh::Mesh;
-use bevy::prelude::{ColorMaterial, Commands, Query, Rectangle, ResMut, Vec3, With};
-use bevy::window::{PrimaryWindow, Window};
+use bevy::prelude::{ColorMaterial, Commands, Rectangle, ResMut, Vec3};
 
 const FLOOR_HEIGHT: f32 = 20.0;
 const WALL_WIDTH: f32 = 20.0;
@@ -15,15 +15,12 @@ pub fn level1(
   mut meshes: ResMut<Assets<Mesh>>,
   // Material storage; `materials.add(color)` creates a solid-color material and returns a handle.
   mut materials: ResMut<Assets<ColorMaterial>>,
-  windows: Query<&Window, With<PrimaryWindow>>,
 ) {
-  // 2D world units map 1:1 to logical pixels by default, so the primary window's logical
-  // width/height double as the visible world bounds.
-  let window = windows
-    .single()
-    .expect("primary window should exist by Startup");
-  let width = window.width();
-  let height = window.height();
+  // The level is built from the fixed WORLD_WIDTH/WORLD_HEIGHT reference resolution, not the
+  // live window size, so its layout stays consistent no matter what size window it's viewed
+  // through (the camera's AutoMin scaling handles fitting it to the actual window).
+  let width = WORLD_WIDTH;
+  let height = WORLD_HEIGHT;
 
   let floor = create_static_solid(
     &mut meshes,
