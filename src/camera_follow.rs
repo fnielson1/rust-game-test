@@ -26,7 +26,7 @@ type CameraQuery<'w, 's> = Query<
 >;
 
 // Higher = camera catches up to the player faster (less lag, less smoothing).
-const CAMERA_SMOOTHING: f32 = 6.0;
+const CAMERA_SMOOTHING: f32 = 3.0;
 // Lower than CAMERA_SMOOTHING so the on-screen anchor point eases toward its target
 // instead of snapping, which would otherwise yank the lerp target around on every
 // grounded/airborne transition.
@@ -41,7 +41,7 @@ const FALL_SPEED_FOR_FULL_TRANSITION: f32 = 100.0;
 // Upward speed below which the anchor starts easing toward "falling", so the transition
 // begins on the way up to the apex instead of waiting for velocity.y to cross zero.
 const APEX_APPROACH_SPEED: f32 = 400.0;
-// How many player heights of empty space below the lowest on-screen solid surface the
+// How much height of empty space below the lowest on-screen solid surface the
 // camera is allowed to reveal, so a long fall doesn't pan the camera down into open void.
 const MAX_HEIGHT_BELOW_GROUND: f32 = 100.0;
 

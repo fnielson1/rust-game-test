@@ -10,7 +10,7 @@ use bevy::prelude::{
 
 const PLAYER_RADIUS: f32 = 50.0;
 // Multiplies the global Gravity resource for just this entity; 1.0 = unscaled, 0.0 = weightless.
-const PLAYER_GRAVITY_SCALE: f32 = 1.0;
+const PLAYER_GRAVITY_SCALE: f32 = 2.0;
 const PLAYER_FRICTION: f32 = 0.5;
 // Without any Restitution, Avian defaults to 0.0 (perfectly inelastic), so the ball
 // absorbs all velocity on contact and sticks to walls/floor instead of bouncing off.
