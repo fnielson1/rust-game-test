@@ -6,7 +6,7 @@ use bevy::color::Color;
 use bevy::mesh::Mesh;
 use bevy::prelude::{ColorMaterial, Commands, Rectangle, ResMut, Vec3};
 
-const FLOOR_HEIGHT: f32 = 20.0;
+const FLOOR_HEIGHT: f32 = 30.0;
 const WALL_WIDTH: f32 = 20.0;
 
 pub fn level1(
@@ -26,7 +26,7 @@ pub fn level1(
     &mut meshes,
     &mut materials,
     Rectangle::new(width, FLOOR_HEIGHT),
-    Color::hsl(150.0, 0.95, 0.7),
+    Color::hsl(100.0, 0.95, 0.7),
     Vec3::new(0.0, -height / 2.0 + FLOOR_HEIGHT / 2.0, 0.1),
     Collider::rectangle(width, FLOOR_HEIGHT),
   );

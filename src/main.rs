@@ -10,6 +10,8 @@ mod app_state;
 mod camera_follow;
 mod components;
 mod create_static_solid;
+#[cfg(feature = "hotpatch")]
+mod hotpatch_reload;
 mod input_config;
 mod levels;
 mod menu;
@@ -64,6 +66,10 @@ fn main() {
       .chain(),
   );
   app.add_systems(Update, (toggle_menu, handle_cog_click));
+  // Rebuilds the spawned world whenever a hot patch lands, so edits to spawn code don't need
+  // a restart. The list of systems it re-runs lives in `hotpatch_reload`.
+  #[cfg(feature = "hotpatch")]
+  app.add_plugins(hotpatch_reload::HotPatchReloadPlugin);
   app.add_systems(
     Update,
     (

@@ -1,4 +1,4 @@
-use crate::components::{CoyoteTimer, Player};
+use crate::components::{CoyoteTimer, HotReloadable, Player};
 use crate::world_bounds::WORLD_HEIGHT;
 use avian2d::prelude::{
   CoefficientCombine, Collider, Friction, GravityScale, Restitution, RigidBody, ShapeCaster,
@@ -37,6 +37,9 @@ pub fn setup_player(
       MeshMaterial2d(materials.add(Color::hsl(0., 0.95, 0.7))),
       Transform::from_xyz(0.0, spawn_y, 0.0),
       Player,
+      // Rebuilt by the hot-patch reload; the child below goes with it, since `despawn`
+      // recurses into `Children`.
+      HotReloadable,
       // Dynamic: falls under gravity and collides with SolidSurface entities.
       RigidBody::Dynamic,
       Collider::circle(PLAYER_RADIUS),
@@ -63,7 +66,7 @@ pub fn setup_player(
       CoyoteTimer(f32::MAX),
     ))
     .with_child((
-      Mesh2d(meshes.add(Rectangle::new(4.0, 50.0))),
+      Mesh2d(meshes.add(Rectangle::new(4.0, PLAYER_RADIUS))),
       MeshMaterial2d(materials.add(Color::hsl(120., 0.95, 0.7))),
       Transform::from_xyz(0.0, 0.0, 0.1),
     ));

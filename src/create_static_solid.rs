@@ -1,4 +1,4 @@
-use crate::components::SolidSurface;
+use crate::components::{HotReloadable, SolidSurface};
 use avian2d::prelude::{CoefficientCombine, Collider, Friction, Restitution, RigidBody};
 use bevy::asset::Assets;
 use bevy::color::Color;
@@ -23,6 +23,7 @@ pub fn create_static_solid(
   MeshMaterial2d<ColorMaterial>,
   Transform,
   SolidSurface,
+  HotReloadable,
   RigidBody,
   Friction,
   Restitution,
@@ -35,6 +36,9 @@ pub fn create_static_solid(
     // (screen bottom) plus half its own thickness (so its bottom edge lands on the window edge).
     Transform::from_xyz(transform.x, transform.y, transform.z),
     SolidSurface,
+    // Every level is built from these, so marking them here is what makes a new level
+    // hot-reloadable without touching `hotpatch_reload`.
+    HotReloadable,
     // Static: never moves, but dynamic bodies collide with and rest on it.
     RigidBody::Static,
     Friction::new(SOLID_FRICTION).with_combine_rule(CoefficientCombine::Average),

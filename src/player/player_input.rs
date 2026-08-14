@@ -19,9 +19,6 @@ const COYOTE_TIME: f32 = 0.15;
 // horizontal velocity directly, at a slower rate than the near-instant grounded response
 // so it feels like drift rather than full ground handling.
 const AIR_CONTROL_ACCEL: f32 = 200.0;
-// Air drift caps at this fraction of the ball's rolling top speed, so air control can't
-// outrun (and stays a bit weaker than) what's reachable by rolling on the ground.
-// const AIR_SPEED_FRACTION: f32 = 1.0;
 
 type PlayerQueryData<'a> = (
   &'a mut LinearVelocity,

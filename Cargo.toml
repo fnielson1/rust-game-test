@@ -7,9 +7,23 @@ edition = "2024"
 avian2d = "0.7.0"
 bevy = "0.19.0"
 
+[features]
+# Routes every system call through subsecond so the dioxus CLI can swap system bodies into
+# the running game. Off by default: it costs an indirection on every system call, and the
+# `hot` script below is the only thing that needs it. Native only -- `HotPatchPlugin` never
+# connects to the CLI on wasm, so the trunk/web loop can't use it.
+hotpatch = ["bevy/hotpatching"]
+
 [package.metadata.scripts]
 serve = "~/.cargo/bin/trunk serve --open"
 build-web = "~/.cargo/bin/trunk build --release"
+# Runs the game natively with hot patching: edit a system body, save, and the change lands in
+# the running game without restarting it. Needs the `dx` CLI at the exact `subsecond` version
+# bevy 0.19 pins (0.7.10) -- a mismatch means patches silently fail to load. Install the
+# prebuilt binary from https://github.com/DioxusLabs/dioxus/releases/tag/v0.7.10
+# (dx-x86_64-unknown-linux-gnu.tar.gz -> ~/.cargo/bin/dx); building the CLI from source with
+# `cargo install` instead drags in openssl-sys and needs libssl-dev + pkg-config.
+hot = "BEVY_ASSET_ROOT=\".\" ~/.cargo/bin/dx serve --hot-patch --features hotpatch"
 
 [lints.clippy]
 shadow_reuse = "deny"

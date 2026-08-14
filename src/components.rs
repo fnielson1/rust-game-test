@@ -3,6 +3,20 @@ use bevy::prelude::Component;
 #[derive(Component)]
 pub struct SolidSurface;
 
+/// Marks an entity as owned by a hot-reloadable spawn system, so the hot-patch rebuild knows
+/// to despawn it (see `hotpatch_reload`).
+///
+/// The rule this encodes: an entity carries this marker if and only if one of the systems the
+/// rebuild re-runs will spawn it again. Marking something nothing respawns deletes it for the
+/// rest of the session; respawning something unmarked stacks a duplicate on every patch.
+///
+/// Only root entities need it -- `despawn` recurses into `Children`.
+///
+/// Lives here rather than in `hotpatch_reload` so bundles can carry it unconditionally; it's
+/// an empty marker, so it costs nothing in builds without the `hotpatch` feature.
+#[derive(Component)]
+pub struct HotReloadable;
+
 #[derive(Component)]
 pub struct Player;
 
