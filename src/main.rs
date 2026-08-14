@@ -22,8 +22,8 @@ use camera_follow::camera_follow;
 use input_config::{KeyBindings, RebindError, RebindRequest, rebind_capture};
 use levels::level1::level1;
 use menu::{
-  handle_cog_click, handle_row_clicks, spawn_cog_button, spawn_menu, update_binding_rows,
-  update_error_label,
+  cancel_rebind_on_outside_click, clear_rebind_state, handle_backdrop_click, handle_cog_click,
+  handle_row_clicks, spawn_cog_button, spawn_menu, update_binding_rows, update_error_label,
 };
 use player::grounded::update_grounded;
 use player::player_input::player_input;
@@ -51,7 +51,8 @@ fn main() {
     .add_systems(Startup, setup)
     .add_systems(Startup, level1)
     .add_systems(Startup, spawn_cog_button)
-    .add_systems(OnEnter(AppState::Menu), spawn_menu);
+    .add_systems(OnEnter(AppState::Menu), spawn_menu)
+    .add_systems(OnExit(AppState::Menu), clear_rebind_state);
 
   app.add_systems(
     Update,
@@ -67,7 +68,10 @@ fn main() {
     Update,
     (
       rebind_capture,
+      // Must clear the old request before the row handler records the newly clicked one.
+      cancel_rebind_on_outside_click.before(handle_row_clicks),
       handle_row_clicks,
+      handle_backdrop_click,
       update_binding_rows,
       update_error_label,
     )
