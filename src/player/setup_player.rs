@@ -18,6 +18,10 @@ const PLAYER_RESTITUTION: f32 = 0.2;
 // How far below the player to look for ground. Small enough that the caster only reports
 // contact when the ball is actually resting on a surface, not merely nearby.
 const GROUND_CAST_DISTANCE: f32 = 4.0;
+// The oversized detector below overlaps whatever the ball touches in *any* direction, so a
+// ceiling and the floor can both be in contact at once. Report several hits instead of only
+// the closest, otherwise a ceiling hit can hide the floor hit that `update_grounded` needs.
+const GROUND_CAST_MAX_HITS: u32 = 4;
 
 pub fn setup_player(
   mut commands: Commands,
@@ -53,6 +57,14 @@ pub fn setup_player(
       // This is the standard Avian way to answer "is this body touching the ground" —
       // more reliable than inferring it from velocity or one-shot collision events, since
       // it works whether the ball is momentarily still, sliding, or spinning in place.
+      //
+      // Note that the caster is attached to a freely rotating body, so Avian spins its
+      // direction along with the ball — the cast is only "down" while the ball is upright.
+      // What actually does the work here is the oversized shape: centred on the ball, it
+      // already overlaps anything within the extra radius at the cast origin, so contact is
+      // reported no matter which way the ball happens to be facing. That also means it
+      // reports ceilings and walls, so `update_grounded` has to check *where* on the ball
+      // each contact sits rather than trusting the hit list.
       ShapeCaster::new(
         // Make the "detector" slightly bigger to avoid issues with small bounces
         Collider::circle(PLAYER_RADIUS * 1.1),
@@ -60,7 +72,8 @@ pub fn setup_player(
         0.0,
         Dir2::NEG_Y,
       )
-      .with_max_distance(GROUND_CAST_DISTANCE),
+      .with_max_distance(GROUND_CAST_DISTANCE)
+      .with_max_hits(GROUND_CAST_MAX_HITS),
       // Starts "never grounded" so the coyote-time jump window can't be used before the
       // player has actually touched down once; `update_grounded` resets this on contact.
       CoyoteTimer(f32::MAX),
