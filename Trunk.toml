@@ -1,2 +1,8 @@
 [serve]
 port = 8081
+# Bevy's wasm asset reader probes for a `<asset>.meta` sidecar before every asset it loads, and
+# relies on a 404 to conclude there isn't one. Trunk's SPA fallback instead answers every unknown
+# path with `index.html` and a 200, so bevy receives HTML, fails to parse it as RON asset meta,
+# and the asset load fails outright -- `levels/level1.level.json` never loads and the level comes
+# up empty. Turning the fallback off restores the 404 this depends on.
+no_spa = true

@@ -1,0 +1,10 @@
+{
+  "segments": [
+    { "start": [-640, -345], "end": [150, -345], "thickness": 30 },
+    { "start": [400, -345], "end": [640, -345], "thickness": 30 },
+    { "start": [-630, -620], "end": [-630, 360], "thickness": 20 },
+    { "start": [630, -620], "end": [630, 360], "thickness": 20 },
+    { "start": [-400, -330], "end": [-100, -180], "thickness": 30 },
+    { "start": [-620, -600], "end": [620, -600], "thickness": 30 }
+  ]
+}

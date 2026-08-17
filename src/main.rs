@@ -22,7 +22,7 @@ mod world_bounds;
 use app_state::{AppState, toggle_menu};
 use camera_follow::camera_follow;
 use input_config::{KeyBindings, RebindError, RebindRequest, rebind_capture};
-use levels::level1::level1;
+use levels::LevelPlugin;
 use menu::{
   cancel_rebind_on_outside_click, clear_rebind_state, handle_backdrop_click, handle_cog_click,
   handle_row_clicks, spawn_cog_button, spawn_menu, update_binding_rows, update_error_label,
@@ -40,6 +40,9 @@ fn main() {
       DefaultPlugins,
       // Avian's 2D physics: rigid bodies, colliders, gravity, and collision resolution.
       PhysicsPlugins::default(),
+      // The JSON level format, its loader, and the systems that build levels from it
+      // (including the `level1` startup load that used to be registered by hand below).
+      LevelPlugin,
     ))
     .insert_resource(Gravity(Vec2::NEG_Y * GRAVITY))
     // More substeps = the friction solver resolves the spin-to-roll grip more gradually
@@ -51,7 +54,6 @@ fn main() {
     .init_resource::<RebindError>()
     // Run `setup` once at startup to spawn the camera, shapes, and UI text.
     .add_systems(Startup, setup)
-    .add_systems(Startup, level1)
     .add_systems(Startup, spawn_cog_button)
     .add_systems(OnEnter(AppState::Menu), spawn_menu)
     .add_systems(OnExit(AppState::Menu), clear_rebind_state);

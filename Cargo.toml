@@ -6,13 +6,23 @@ edition = "2024"
 [dependencies]
 avian2d = "0.7.0"
 bevy = "0.19.0"
+# Level geometry is authored as JSON and parsed by the custom asset loader in
+# `levels::level_asset`. Both are already in the tree via bevy, but a direct dependency is
+# needed to name them in our own code.
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
 
 [features]
 # Routes every system call through subsecond so the dioxus CLI can swap system bodies into
 # the running game. Off by default: it costs an indirection on every system call, and the
 # `hot` script below is the only thing that needs it. Native only -- `HotPatchPlugin` never
 # connects to the CLI on wasm, so the trunk/web loop can't use it.
-hotpatch = ["bevy/hotpatching"]
+#
+# `file_watcher` rides along because this feature is what "live editing build" means here:
+# without it bevy never emits `AssetEvent::Modified`, so saving a level's JSON would do
+# nothing. It costs a `notify` dependency and a background thread, and it's a no-op on wasm
+# (no filesystem to watch), so release and web builds shouldn't carry it.
+hotpatch = ["bevy/hotpatching", "bevy/file_watcher"]
 
 [package.metadata.scripts]
 serve = "~/.cargo/bin/trunk serve --open"

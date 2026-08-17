@@ -3,7 +3,7 @@ use avian2d::prelude::{CoefficientCombine, Collider, Friction, Restitution, Rigi
 use bevy::asset::Assets;
 use bevy::color::Color;
 use bevy::mesh::{Mesh, Mesh2d};
-use bevy::prelude::{ColorMaterial, MeshMaterial2d, Transform, Vec3};
+use bevy::prelude::{ColorMaterial, MeshMaterial2d, Transform};
 
 const SOLID_FRICTION: f32 = 10.0;
 const SOLID_RESTITUTION: f32 = 0.5;
@@ -15,7 +15,10 @@ pub fn create_static_solid(
   materials: &mut Assets<ColorMaterial>,
   mesh: impl Into<Mesh>,
   color: Color,
-  transform: Vec3,
+  // Full transform rather than a translation: level segments lie at arbitrary angles, and
+  // rotation is what makes that expressible. Avian applies this same rotation to `collider`,
+  // so the collision shape follows the drawn mesh without being constructed differently.
+  transform: Transform,
   // Collision shape matching `mesh`, so the surface can be hit by dynamic rigid bodies.
   collider: Collider,
 ) -> (
@@ -32,9 +35,7 @@ pub fn create_static_solid(
   (
     Mesh2d(meshes.add(mesh)),
     MeshMaterial2d(materials.add(color)),
-    // Rectangle::new is centered on its Transform, so push it down by half the window height
-    // (screen bottom) plus half its own thickness (so its bottom edge lands on the window edge).
-    Transform::from_xyz(transform.x, transform.y, transform.z),
+    transform,
     SolidSurface,
     // Every level is built from these, so marking them here is what makes a new level
     // hot-reloadable without touching `hotpatch_reload`.

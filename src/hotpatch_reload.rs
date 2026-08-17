@@ -10,6 +10,11 @@
 //! `despawn_world` followed by the spawn systems behind that message, rebuilding them from the
 //! patched code.
 //!
+//! Level geometry is a special case since it moved into JSON. `level1` only requests a rebuild;
+//! `spawn_level` does the spawning. The request is what makes this work at all -- re-running
+//! `level1` reloads an already-loaded asset, which fires no asset event, so without the explicit
+//! request `despawn_world` would clear the level and nothing would bring it back.
+//!
 //! The spawn systems have to be *scheduled* rather than invoked through
 //! `Commands::run_system_cached`. Bevy only calls `System::refresh_hotpatch` on systems an
 //! executor owns, so a cached system keeps running whichever body it captured on its first
@@ -20,6 +25,7 @@
 
 use crate::components::HotReloadable;
 use crate::levels::level1::level1;
+use crate::levels::spawn_level::spawn_level;
 use crate::player::setup_player::setup_player;
 use bevy::ecs::HotPatched;
 use bevy::ecs::schedule::common_conditions::on_message;
@@ -38,8 +44,12 @@ impl Plugin for HotPatchReloadPlugin {
       // to apply through, so the old world is gone before the new one spawns. Whatever a
       // system listed here spawns must carry `HotReloadable`, or the rebuild stacks a
       // duplicate on top of the old copy every patch.
+      // `level1` no longer spawns anything itself -- it requests a level rebuild, which
+      // `spawn_level` performs. Ordering before `spawn_level` keeps that rebuild in this same
+      // frame, so a patch never leaves a frame with the world despawned and not yet rebuilt.
       (despawn_world, setup_player, level1)
         .chain()
+        .before(spawn_level)
         .run_if(on_message::<HotPatched>),
     );
   }

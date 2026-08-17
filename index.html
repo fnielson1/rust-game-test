@@ -14,6 +14,10 @@
         }
     </style>
     <link data-trunk rel="rust" data-wasm-opt="0"/>
+    <!-- Copies `assets/` into `dist/` so the wasm build serves the same level JSON the native
+         build reads from disk. Trunk has no equivalent setting in Trunk.toml; asset copying is
+         declared here or not at all. -->
+    <link data-trunk rel="copy-dir" href="assets"/>
 </head>
 <body>
 </body>

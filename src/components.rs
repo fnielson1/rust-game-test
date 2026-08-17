@@ -17,6 +17,14 @@ pub struct SolidSurface;
 #[derive(Component)]
 pub struct HotReloadable;
 
+/// Marks an entity spawned from a line segment in a level file.
+///
+/// Distinct from [`HotReloadable`] because the two sets differ: the player is hot-reloadable but
+/// is not level geometry, so a level rebuild must not despawn it. `spawn_level` clears exactly
+/// the entities carrying this marker before spawning the new set.
+#[derive(Component)]
+pub struct LevelSegment;
+
 #[derive(Component)]
 pub struct Player;
 
