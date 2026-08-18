@@ -85,21 +85,44 @@ pub fn spawn_level(
       warn!("level segment {index} skipped: {reason}");
       continue;
     }
-    spawned += 1;
-    let length = segment.length();
-    commands.spawn((
+    let color = Color::hsl(SEGMENT_COLOR_HUE, 0.95, 0.7);
+    // Both arms return the same tuple from `create_static_solid`, so a curve and a straight
+    // segment spawn as one entity apiece, indistinguishable to everything downstream -- the
+    // despawn count above, the `HotReloadable` marker, and the grounding check all stay as they
+    // were. Only the mesh, transform, and collider handed in differ.
+    let solid = if segment.is_curved() {
+      let ribbon = segment.ribbon();
+      // The only curve failure `validate` can't catch: a quad too degenerate for avian to hull.
+      // Skipped and reported like any other authoring mistake rather than panicking.
+      let Some(collider) = ribbon.collider() else {
+        warn!("level segment {index} skipped: curve produced no collidable surface");
+        continue;
+      };
+      create_static_solid(
+        &mut meshes,
+        &mut materials,
+        ribbon.mesh(),
+        color,
+        // Translation only, and vertices already in local space around the centroid -- a curve
+        // has no single angle for a rotation to carry.
+        ribbon.transform(SEGMENT_Z),
+        collider,
+      )
+    } else {
+      let length = segment.length();
       create_static_solid(
         &mut meshes,
         &mut materials,
         Rectangle::new(length, segment.thickness),
-        Color::hsl(SEGMENT_COLOR_HUE, 0.95, 0.7),
+        color,
         segment.transform(SEGMENT_Z),
         // Avian rotates this by the transform above, so one axis-aligned rectangle collider
         // covers every angle a segment can be drawn at.
         Collider::rectangle(length, segment.thickness),
-      ),
-      LevelSegment,
-    ));
+      )
+    };
+    spawned += 1;
+    commands.spawn((solid, LevelSegment));
   }
 
   // Both counts, not just the new one: a rebuild that despawns fewer than it spawned is how

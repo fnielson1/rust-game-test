@@ -1,3 +1,4 @@
+pub mod curve;
 pub mod level1;
 pub mod level_asset;
 pub mod spawn_level;

@@ -1,9 +1,14 @@
 //! The JSON level format and the loader that turns it into a [`LevelAsset`].
 //!
-//! A level is a list of line segments. Each segment is two endpoints and a thickness; its angle
+//! A level is a list of segments. Each segment is two endpoints and a thickness; its angle
 //! and length are whatever the endpoints imply, and a gap is simply the absence of a segment
 //! between two others. That is the whole format -- there is no explicit gap, angle, or spacer
 //! entry, because none is needed.
+//!
+//! A segment may also carry a `control` point, which bends it into a curve; see
+//! [`crate::levels::curve`] for what that means geometrically and how it is built. This file owns
+//! the *format*: which fields exist and which combinations are rejected. The geometry those fields
+//! imply lives next door.
 //!
 //! Files are registered under the `.level.json` extension rather than plain `.json` so that any
 //! other JSON the project loads later can't accidentally be routed through this loader. Bevy
@@ -15,17 +20,40 @@ use bevy::asset::{Asset, AssetLoader, LoadContext};
 use bevy::prelude::{Quat, Transform, TypePath, Vec2};
 use serde::Deserialize;
 
-/// One line segment of level geometry.
+/// One segment of level geometry: a straight line, or a curve if it declares a `control` point.
 ///
-/// `start` and `end` are world-space points. The surface built from them is centered on the line
-/// between them and extends `thickness / 2.0` to either side, so `thickness` is measured
-/// perpendicular to the segment, not vertically.
+/// `start` and `end` are world-space points. The surface built from them is centered on the
+/// segment and extends `thickness / 2.0` to either side, so `thickness` is measured perpendicular
+/// to the segment, not vertically.
+///
+/// Both optional fields default to `None`, which is what keeps files written before curves existed
+/// valid: a segment with no `control` is the straight line it always was, built by the same code
+/// path and producing the same entity.
 #[derive(Deserialize, Debug, Clone, Copy)]
 #[serde(deny_unknown_fields)]
 pub struct Segment {
   pub start: [f32; 2],
   pub end: [f32; 2],
   pub thickness: f32,
+  /// Bends the segment into a quadratic Bezier curve pulled toward this point.
+  ///
+  /// The curve passes through `start` and `end` but *not* through `control` -- it peaks around
+  /// halfway toward it. Put the point above the line for a hill, below for a vale, and off-center
+  /// for a lopsided one.
+  ///
+  /// Quadratic specifically: such a curve is always a simple convex arc, so it cannot
+  /// self-intersect, cusp, or inflect. Every curve that can be written here is therefore a
+  /// well-formed hill or vale, which is what keeps the offset geometry in
+  /// [`crate::levels::curve`] tractable.
+  #[serde(default)]
+  pub control: Option<[f32; 2]>,
+  /// Overrides how many straight pieces the curve is approximated by.
+  ///
+  /// Normally unnecessary -- the count is derived from the curve's own size so that a small curve
+  /// and a large one come out equally smooth. Set it to a small number for a deliberately faceted
+  /// surface. Ignored by straight segments, which are never subdivided.
+  #[serde(default)]
+  pub subdivisions: Option<u32>,
 }
 
 /// Why a segment can't produce a surface.
@@ -40,6 +68,19 @@ pub enum SegmentError {
   InvalidLength(f32),
   /// Thickness is zero, negative, or non-finite -- same degenerate-collider problem.
   InvalidThickness(f32),
+  /// A control-point coordinate is NaN or infinite. Same reasoning as the endpoint checks: every
+  /// sample along the curve would inherit it, and the segment would spawn as an invisible entity
+  /// at an undefined position.
+  NonFiniteControl([f32; 2]),
+  /// The curve bends tighter than half its own thickness. Below that radius the inner edge of the
+  /// surface crosses itself, the pieces there turn inside out, and the resulting collider is
+  /// wrong in a way that is nearly impossible to spot on screen -- so this is rejected rather
+  /// than drawn.
+  TooSharpForThickness { radius: f32, thickness: f32 },
+  /// The control point lies on the line through the endpoints but outside them, folding the curve
+  /// back along itself. The fold point has no tangent, so there is no direction to offset the
+  /// surface in.
+  FoldedCurve,
 }
 
 impl core::fmt::Display for SegmentError {
@@ -51,12 +92,36 @@ impl core::fmt::Display for SegmentError {
       Self::InvalidThickness(thickness) => {
         write!(f, "thickness must be positive (was {thickness})")
       }
+      Self::NonFiniteControl([x, y]) => {
+        write!(f, "control point must be finite (was [{x}, {y}])")
+      }
+      Self::TooSharpForThickness { radius, thickness } => {
+        write!(
+          f,
+          "curve bends too sharply for its thickness: tightest radius {radius} is under half of \
+           thickness {thickness} -- make it thinner or bend it less"
+        )
+      }
+      Self::FoldedCurve => {
+        write!(
+          f,
+          "control point folds the curve back on itself -- move it off the line through the \
+           endpoints, or between them"
+        )
+      }
     }
   }
 }
 
 impl Segment {
-  /// Distance between the endpoints. This is the length of the rectangle built from it.
+  /// Whether this segment bends. Straight segments take a simpler and entirely separate spawn
+  /// path, so this is the one place that decision is made.
+  pub fn is_curved(&self) -> bool {
+    self.control.is_some()
+  }
+
+  /// Distance between the endpoints. For a straight segment this is the length of the rectangle
+  /// built from it; for a curved one it is only the chord, and says nothing about arc length.
   pub fn length(&self) -> f32 {
     Vec2::from(self.end).distance(Vec2::from(self.start))
   }
@@ -66,15 +131,23 @@ impl Segment {
   /// The `is_finite` checks matter because NaN fails every ordered comparison: a bare
   /// `length <= 0.0` would wave a NaN coordinate through and spawn an invisible entity at an
   /// undefined position.
+  ///
+  /// Ordered cheapest-first, and finiteness before geometry: the curvature check below reads every
+  /// control point, so a non-finite one has to be caught before it gets there.
   pub fn validate(&self) -> Result<(), SegmentError> {
     if !self.thickness.is_finite() || self.thickness <= 0.0 {
       return Err(SegmentError::InvalidThickness(self.thickness));
+    }
+    if let Some(control) = self.control
+      && !Vec2::from(control).is_finite()
+    {
+      return Err(SegmentError::NonFiniteControl(control));
     }
     let length = self.length();
     if !length.is_finite() || length <= 0.0 {
       return Err(SegmentError::InvalidLength(length));
     }
-    Ok(())
+    self.validate_curvature()
   }
 
   /// Places a `length x thickness` rectangle along this segment: centered on the midpoint of

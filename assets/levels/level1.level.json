@@ -1,7 +1,8 @@
 {
   "segments": [
-    { "start": [-640, -345], "end": [150, -345], "thickness": 30 },
-    { "start": [400, -345], "end": [640, -345], "thickness": 30 },
+    { "start": [-640, -345], "end": [100, -345], "thickness": 30 },
+    { "start": [100, -345], "end": [400, -345], "thickness": 30, "control": [250, -275] },
+    { "start": [400, -345], "end": [640, -345], "thickness": 30, "control": [520, -395] },
     { "start": [-630, -620], "end": [-630, 360], "thickness": 20 },
     { "start": [630, -620], "end": [630, 360], "thickness": 20 },
     { "start": [-400, -330], "end": [-100, -180], "thickness": 30 },
