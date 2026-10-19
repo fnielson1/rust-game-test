@@ -37,7 +37,15 @@ fn main() {
   app
     .add_plugins((
       // Bevy's standard plugin bundle: windowing, rendering, input, asset loading, etc.
-      DefaultPlugins,
+      // On web, fit_canvas_to_parent makes the canvas track the page size (like a resized
+      // native window) so the camera's AutoMin scaling fills the browser; native ignores it.
+      DefaultPlugins.set(WindowPlugin {
+        primary_window: Some(Window {
+          fit_canvas_to_parent: true,
+          ..default()
+        }),
+        ..default()
+      }),
       // Avian's 2D physics: rigid bodies, colliders, gravity, and collision resolution.
       PhysicsPlugins::default(),
     ))
